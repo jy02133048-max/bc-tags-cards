@@ -213,6 +213,8 @@
     if (btn && /See My Chart/i.test(btn.textContent)) {
       btn.textContent = 'Reveal My Persona →';
     }
+    // 文案改完 · 解除 pre-hide · fade-in 表单
+    formWrap.classList.add('bc-persona-ready');
   }
 
   // ─── Override window.bcSubmitChart ───
@@ -391,10 +393,17 @@
     if (topEl) topEl.scrollIntoView({behavior:'smooth'});
   }
 
-  // CSS keyframes for compass spin (注入 style tag · 不污染主题 css)
+  // CSS keyframes for compass spin + 立即注入 pre-hide CSS（防 FOUC）
+  // takeOver() 完成后会移除 pre-hide
   var styleTag = document.createElement('style');
-  styleTag.textContent = '@keyframes bcSpin{to{transform:rotate(360deg)}}';
-  document.head.appendChild(styleTag);
+  styleTag.id = 'bc-persona-prestyles';
+  styleTag.textContent = [
+    '@keyframes bcSpin{to{transform:rotate(360deg)}}',
+    /* 表单先隐形 · 等 rewriteHeroCopy 改完文案再 fade-in · 防止旧文案闪现 */
+    '#bcFormWrap{opacity:0;transition:opacity 0.35s ease;}',
+    '#bcFormWrap.bc-persona-ready{opacity:1;}'
+  ].join('\n');
+  (document.head || document.documentElement).appendChild(styleTag);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', takeOver);
