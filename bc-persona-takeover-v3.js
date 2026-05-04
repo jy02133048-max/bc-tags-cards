@@ -187,15 +187,44 @@
     return true;
   }
 
+  // ─── Rewrite hero copy + button text (button element + id + onclick 不动) ───
+  function rewriteHeroCopy() {
+    var formWrap = document.getElementById('bcFormWrap');
+    if (!formWrap) return;
+    // Hero pill
+    formWrap.querySelectorAll('div').forEach(function(d) {
+      var t = (d.textContent || '').trim();
+      if (t === '✦ Free Instant Preview') d.textContent = '✦ Free Instant Persona Card';
+    });
+    // Hero h2 ("See what your compass says.")
+    var h2 = formWrap.querySelector('h2');
+    if (h2 && /compass says/i.test(h2.textContent)) {
+      h2.innerHTML = 'Find out which <em style="color:#8a7355;">persona</em> your chart says you are.';
+    }
+    // Hero sub ("Enter your birth details. Get your Five Element breakdown...")
+    var subs = formWrap.querySelectorAll('p');
+    subs.forEach(function(p) {
+      if (/Five Element breakdown|personality snapshot/i.test(p.textContent)) {
+        p.textContent = "Enter your birth details. We'll match you to one of 16 persona cards — free, ready in ~30 seconds.";
+      }
+    });
+    // Submit button text only (id / onclick / element 不动 · 埋点保留)
+    var btn = document.getElementById('bcSubmitBtn');
+    if (btn && /See My Chart/i.test(btn.textContent)) {
+      btn.textContent = 'Reveal My Persona →';
+    }
+  }
+
   // ─── Override window.bcSubmitChart ───
   function takeOver() {
     if (!buildPanels()) {
       setTimeout(takeOver, 500);
       return;
     }
+    rewriteHeroCopy();
     // Override the global function · button onclick="bcSubmitChart()" 不变
     window.bcSubmitChart = personaFlow;
-    console.log('[bc-persona-v3] takeover armed');
+    console.log('[bc-persona-v3] takeover armed (hero copy rewritten)');
   }
 
   function personaFlow() {
