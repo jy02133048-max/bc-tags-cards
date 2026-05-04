@@ -217,16 +217,25 @@
     formWrap.classList.add('bc-persona-ready');
   }
 
-  // ─── Override window.bcSubmitChart ───
+  // ─── Override button click handler (移除 inline onclick · 加 listener · 保留 click event 给埋点) ───
   function takeOver() {
     if (!buildPanels()) {
       setTimeout(takeOver, 500);
       return;
     }
     rewriteHeroCopy();
-    // Override the global function · button onclick="bcSubmitChart()" 不变
+    // 双保险 override:
+    // 1. Override window.bcSubmitChart (理论上够了)
     window.bcSubmitChart = personaFlow;
-    console.log('[bc-persona-v3] takeover armed (hero copy rewritten)');
+    // 2. 移除 button 的 inline onclick · 加 addEventListener
+    //    这样 inline `bcSubmitChart()` 不会触发旧逻辑 · 但 click event 仍然 fire · Meta Pixel 等第三方埋点（监听 click event）不受影响
+    var btn = document.getElementById('bcSubmitBtn');
+    if (btn && btn.dataset.bcV3Bound !== '1') {
+      btn.dataset.bcV3Bound = '1';
+      btn.removeAttribute('onclick');
+      btn.addEventListener('click', function(e) { personaFlow(); });
+    }
+    console.log('[bc-persona-v3] takeover armed (hero copy rewritten · button bound)');
   }
 
   function personaFlow() {
